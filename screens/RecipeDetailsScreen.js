@@ -29,11 +29,11 @@ const details =async()=>{
 	db.collection('RecipeList')
 	.doc(recipeId)
 	.get()
-	.then(function (doc) {
+	.then((doc)=> {
 		console.log(doc.data(),recipeId )
 		setRecipe(doc.data());
 	})
-	.catch(function (error) {
+	.catch((error)=>{
 		console.error('Error adding document: ', error);
 	});
 }

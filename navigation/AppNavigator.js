@@ -3,6 +3,7 @@ import React from 'react';
 import {NavigationContainer} from '@react-navigation/native';
 import {createStackNavigator} from '@react-navigation/stack';
 
+import InitialScreen from '../screens/InitialScreen';
 import SignupScreen from '../screens/SignupScreen';
 import LoginScreen from '../screens/LoginScreen';
 import HomeScreen from '../screens/HomeScreen';
@@ -17,6 +18,16 @@ const AppNavigator =()=>{
         <NavigationContainer>
           <Stack.Navigator>
           <Stack.Screen
+              name="InitialScreen"
+              component={InitialScreen}
+              options={{headerShown: false}}
+            />
+            <Stack.Screen
+              name="HomeScreen"
+              component={HomeScreen}
+              options={{headerShown: false}}
+            /> 
+          <Stack.Screen
               name="LoginScreen"
               component={LoginScreen}
               options={{headerShown: false}}
@@ -26,12 +37,6 @@ const AppNavigator =()=>{
               component={SignupScreen}
               options={{headerShown: false}}
             />
-              
-            <Stack.Screen
-              name="HomeScreen"
-              component={HomeScreen}
-              options={{headerShown: false}}
-            /> 
             <Stack.Screen
               name="RecipeDetailsScreen"
               component={RecipeDetailsScreen}
@@ -48,6 +53,7 @@ const AppNavigator =()=>{
               options={{headerShown: false}}
             />
           </Stack.Navigator>
+          
         </NavigationContainer>
       );
 

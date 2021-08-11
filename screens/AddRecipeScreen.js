@@ -1,4 +1,4 @@
-import React, { useState,useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import {
     View,
@@ -13,11 +13,14 @@ import {
     Platform,
     Image,
     Button,
-    Alert
+    Alert,
+    Modal,
+    ActivityIndicator,
 } from 'react-native';
 import AsyncStorage from '@react-native-community/async-storage';
 import * as ImagePicker from 'expo-image-picker';
 import * as Permissions from 'expo-permissions';
+import * as FileSystem from "expo-file-system";
 import Input from '../components/Input';
 import Firebase, { db } from '../config/Firebase';
 
@@ -28,14 +31,13 @@ const Width = Dimensions.get('window').width > 360;
 
 const AddRecipeScreen = (props) => {
 
-    const [pickedImage, setPickedImage] = useState('');
-    const [recipeName, setRecipeName] = useState('');
-    const [ingredients, setIngredients] = useState('');
-    const [direction, setDirection] = useState('');
-    const [progress, setProgress] = useState(0);
+    const [pickedImage, setPickedImage] = useState({ field: '', check: false });
+    const [recipeName, setRecipeName] = useState({ field: '', check: false });
+    const [ingredients, setIngredients] = useState({ field: '', check: false });
+    const [direction, setDirection] = useState({ field: '', check: false });
     const [imageId, setImageId] = useState(Math.random());
+    const [visible, setVisible] = useState(false);
 
-   
     const verifyPermissions = async () => {
         const result = await Permissions.askAsync(
             Permissions.CAMERA_ROLL,
@@ -59,67 +61,79 @@ const AddRecipeScreen = (props) => {
         }
         const image = await ImagePicker.launchImageLibraryAsync({
             allowsEditing: true,
-            aspect: [16, 9],
             quality: 0.5
         });
 
-        setPickedImage(image.uri);
+        let fileInfo = await FileSystem.getInfoAsync(image.uri);
+        console.log(image, "image", fileInfo)
 
-        const response = await fetch(image.uri);
-        const blob = await response.blob();
-        var ref = Firebase.storage()
-            .ref()
-            .child(`RecipeImage/` + `${imageId}.jpeg`);
-        await ref.put(blob).on(
-            'state_changed',
-            (snapshot) => {
-                const progress = snapshot.bytesTransferred / snapshot.totalBytes;
-                console.log(progress);
-                setProgress(progress);
-                setTimeout(() => {
-                    if (progress === 1) {
-                        return Alert.alert('', ' Image upload completed', [
-                            {
-                                text: 'Okay',
-                                onPress: (setProgress(0)),
-                            },
-                        ]);
-                    }
-                }, 2000);
-            },
-            (error) => console.log(error)
-        );
+        let imageSize = fileInfo.size / (1024 * 1024);
+        if (imageSize > 1) {
+            setPickedImage({ field: '', check: true });
+            alert(`Maximum image size is 1MB,This image size is ${imageSize.toFixed(2)}`)
+        } else {
+            setPickedImage({ field: image.uri, check: false });
+        }
+
     };
+    
 
-    const submit = async() => {
+    const submit = async () => {
+       
         var uid = await AsyncStorage.getItem('uid');
-        var ref = Firebase.storage()
-        	.ref()
-        	.child(`RecipeImage/` + `${imageId}.jpeg`);
-        const image = await ref.getDownloadURL();
+        if (pickedImage.field && recipeName.field && ingredients.field && direction.field) {
+            setVisible(true);
+            const response = await fetch(pickedImage.field);
+            const blob = await response.blob();
+            var ref = Firebase.storage()
+                .ref()
+                .child(`RecipeImage/` + `${imageId}.jpeg`);
+            await ref.put(blob)
 
-        db.collection('RecipeList')
-					.doc(`${imageId}recipe`)
-					.set({
-						recipeName: recipeName,
-						ingredients: ingredients,
-						direction: direction,
-						uid: uid,
-						image: image,
-                        recipeId:`${imageId}recipe`
-					})
-					.then(function (docRef) {
-						console.log('Document saved');
+
+            var ref = Firebase.storage()
+                .ref()
+                .child(`RecipeImage/` + `${imageId}.jpeg`);
+            const image = await ref.getDownloadURL();
+            if (image) {
+                db.collection('RecipeList')
+                    .doc(`${imageId}recipe`)
+                    .set({
+                        recipeName: recipeName.field,
+                        ingredients: ingredients.field,
+                        direction: direction.field,
+                        uid: uid,
+                        image: image,
+                        recipeId: `${imageId}recipe`
+                    })
+                    .then((docRef) => {
+                        console.log(docRef, 'Document saved');
+                        setVisible(false);
                         props.navigation.navigate('HomeScreen');
-					})
-					.catch(function (error) {
-						console.error('Error adding document: ', error);
-					});
+                    })
+                    .catch((error) => {
+                        console.error('Error adding document: ', error);
+                    });
+            } else {
+                setVisible(false);
+                alert("Something wrong try again later")
+            }
+        } else {
+            recipeName.field ? null : setRecipeName({ field: '', check: true });
+            ingredients.field ? null : setIngredients({ field: '', check: true })
+            direction.field ? null : setDirection({ field: '', check: true })
+            pickedImage.field ? null : setPickedImage({ field: '', check: true })
+        }
     };
 
     return (
         <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()} style={{ flex: 1 }}>
             <ScrollView style={{ backgroundColor: "#000" }}>
+                <Modal visible={visible} transparent={true} animationType="slide">
+                    <View style={styles.loadingContainer}>
+                        <ActivityIndicator size="large" color="#0690c2" />
+                    </View>
+                </Modal>
                 <View style={styles.icnTxtContainer}>
                     <View >
                         <Ionicons
@@ -145,47 +159,50 @@ const AddRecipeScreen = (props) => {
                     </View>
 
                     <View style={styles.imagePreview}>
-                        {progress !== 0 ?
-                            <Text style={styles.topMostTxt} >{Math.round(progress * 100)}%</Text> :
-                            <Image style={styles.image} source={{ uri: pickedImage }} />}
+                        <Image style={styles.image} source={{ uri: pickedImage.field }} />
                     </View>
+                    <Text style={styles.errormessage}>Maximum image size is 1MB.</Text>
+                    {pickedImage.check ? <Text style={styles.errortext}>Select one image </Text> : null}
                     <Button
                         title="Take Image"
                         color={'#0690c2'}
-                    onPress={takeImageHandler}
+                        onPress={takeImageHandler}
                     />
-
-                    <View style={styles.inputContainer}>
-                        <Input
-                            style={styles.input}
-                            placeholder={'Recipe Name'}
+                    <View style={styles.passwordContainer}>
+                        <TextInput
+                            style={styles.passwordText}
+                            placeholder="Recipe Name"
                             keyboardType="default"
                             autoCapitalize="none"
-                            onChange={(name) => setRecipeName(name)}
+                            placeholderTextColor="white"
+                            onChangeText={(name) => (name ? setRecipeName({ field: name, check: false }) : setRecipeName({ field: '', check: true }))}
                         />
                     </View>
-                    <View style={styles.inputContainer}>
-                        <Input
-                            style={styles.input}
-                            placeholder={'Recipe Ingredients'}
+                    {recipeName.check ? <Text style={styles.errortext}>Enter recipe name </Text> : null}
+                    <View style={styles.passwordContainer}>
+                        <TextInput
+                            style={styles.passwordText}
+                            placeholder="Recipe ingredients"
                             keyboardType="default"
                             autoCapitalize="none"
-                            numberOfLines={4}
                             multiline={true}
-                            onChange={(ingredients) => setIngredients(ingredients)}
+                            placeholderTextColor="white"
+                            onChangeText={(ingredients) => (ingredients ? setIngredients({ field: ingredients, check: false }) : setIngredients({ field: '', check: true }))}
                         />
                     </View>
-                    <View style={styles.inputContainer}>
-                        <Input
-                            style={styles.input}
-                            placeholder={'Recipe Direction'}
+                    {ingredients.check ? <Text style={styles.errortext}>Enter recipe ingredients </Text> : null}
+                    <View style={styles.passwordContainer}>
+                        <TextInput
+                            style={styles.passwordText}
+                            placeholder="Recipe direction"
                             keyboardType="default"
                             autoCapitalize="none"
-                            numberOfLines={4}
                             multiline={true}
-                            onChange={(direction) => setDirection(direction)}
+                            placeholderTextColor="white"
+                            onChangeText={(direction) => (direction ? setDirection({ field: direction, check: false }) : setDirection({ field: '', check: true }))}
                         />
                     </View>
+                    {direction.check ? <Text style={styles.errortext}>Enter recipe direction </Text> : null}
                 </View>
             </ScrollView>
         </TouchableWithoutFeedback>
@@ -212,16 +229,20 @@ const styles = StyleSheet.create({
     input: {
         padding: 8,
     },
+    errormessage: {
+        color: '#fff',
+        fontSize: 12,
+        alignSelf: 'center',
+        paddingBottom: 5
+    },
     passwordContainer: {
         width: '90%',
-        flexDirection: 'row',
         alignSelf: 'center',
         backgroundColor: 'transparent',
         borderWidth: 1,
-        borderRadius: 35,
-        borderColor: '#777',
-        height: 42,
-        marginBottom: Height ? 5 : 5,
+        borderRadius: 10,
+        borderColor: '#fff',
+        marginTop: 10
     },
     passwordText: {
         flex: 1,
@@ -234,6 +255,12 @@ const styles = StyleSheet.create({
         width: '90%',
         backgroundColor: '#0690c2',
         marginTop: 10
+    },
+    errortext: {
+        color: '#a61d02',
+        fontSize: 14,
+        alignSelf: 'center',
+        padding: 5
     },
     buttonSignupText: {
         padding: Height ? 15 : 10,
@@ -282,7 +309,12 @@ const styles = StyleSheet.create({
     image: {
         width: '100%',
         height: '100%'
-    }
+    },
+    loadingContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center'
+    },
 });
 
 export default AddRecipeScreen;

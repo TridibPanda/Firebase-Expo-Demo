@@ -45,11 +45,9 @@ const LoginScreen = (props) => {
 
 
 	return (
-		<KeyboardAvoidingView
-			// behavior="padding"
-			// keyboardVerticalOffset={50}
-			style={styles.container}
-		>
+		<TouchableWithoutFeedback onPress={() => Keyboard.dismiss()} style={{ flex: 1 }}>
+			<ScrollView style={{ backgroundColor: "#000" }}>
+				<View style={styles.container}>
 			<View style={styles.headerMargin}>
 				<Text style={styles.headerText}>Signin</Text>
 			</View>
@@ -104,7 +102,9 @@ const LoginScreen = (props) => {
 					By clicking Log In, you agree to our terms and condition which include our privacy policy without reservation
 				</Text>
 			</View>
-		</KeyboardAvoidingView>
+			</View>
+			</ScrollView>
+		</TouchableWithoutFeedback>
 	);
 };
 

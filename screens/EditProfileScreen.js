@@ -45,7 +45,7 @@ const EditProfileScreen = (props) => {
 		const userId = await AsyncStorage.getItem('uid');
 		db.collection('Users')
 			.doc(userId)
-			.get().then(function (doc) {
+			.get().then((doc)=> {
 				setName(doc.data().name);
 				setEmail(doc.data().email);
 				setPhone(doc.data().phone);
@@ -94,15 +94,8 @@ const EditProfileScreen = (props) => {
 							value={name}
 						/>
 					</View>
-					<View style={styles.inputContainer}>
-						<Input
-							style={styles.input}
-							placeholder={'Email'}
-							keyboardType="email-address"
-							autoCapitalize="none"
-							// onChange={(email) => setEmail(email)}
-							value={email}
-						/>
+					<View style={styles.passwordContainer}>
+						<Text  style={styles.passwordText} >{email ? email : "Email"}</Text>
 					</View>
 					<View style={styles.inputContainer}>
 						<Input
@@ -158,7 +151,7 @@ const styles = StyleSheet.create({
 		backgroundColor: 'transparent',
 		borderWidth: 1,
 		borderRadius: 35,
-		borderColor: '#777',
+		borderColor: '#fff',
 		height: 42,
 		marginBottom: Height ? 5 : 5,
 	},

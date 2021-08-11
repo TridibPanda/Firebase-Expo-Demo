@@ -1,4 +1,4 @@
-import React, { useState, useEffect,useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import {
 	View,
@@ -10,10 +10,11 @@ import {
 	TextInput,
 	Keyboard,
 	FlatList,
+	BackHandler,
 	ImageBackground
 } from 'react-native';
 import AsyncStorage from '@react-native-community/async-storage';
-import Firebase,{ db } from '../config/Firebase';
+import Firebase, { db } from '../config/Firebase';
 
 const Height = Dimensions.get('window').height > 660;
 const Width = Dimensions.get('window').width > 360;
@@ -25,10 +26,9 @@ const HomeScreen = (props) => {
 	const datafn = () => {
 		var data = [];
 		db.collection('RecipeList')
-			.get().then(function (querySnapshot) {
+			.get().then((querySnapshot) => {
 				if (!querySnapshot.empty) {
-					querySnapshot.forEach(function (doc) {
-						console.log(doc.id, ' => ', doc.data(), '*******');
+					querySnapshot.forEach((doc) => {
 						data.push(doc.data());
 					});
 					setListData(data);
@@ -38,38 +38,15 @@ const HomeScreen = (props) => {
 	};
 	useEffect(() => {
 		datafn();
+		
 	}, [datafn])
 
-	const emptyComponent = () => {
-		return (
-			<View style={{ marginTop: Dimensions.get('window').height * 0.4, alignItems: 'center' }}>
-				<Text style={styles.emptyText}>No recipe found</Text>
-			</View>
-		);
-	};
-
-	const renderItem = ({ item }) => {
-		return (
-			<TouchableOpacity style={styles.item} onPress={() => props.navigation.navigate('RecipeDetailsScreen', { recipeId: item.recipeId })}>
-				<ImageBackground
-					source={{ uri: item.image }}
-					style={styles.bgImage}
-				>
-					<View style={styles.titleContainer}>
-						<Text style={styles.title} numberOfLines={1}>
-							{item.recipeName}
-						</Text>
-					</View>
-				</ImageBackground>
-			</TouchableOpacity>
-		)
-	}
-	const logoutfn = async()=>{
+	const logoutfn = async () => {
 		try {
 			await Firebase.auth()
 				.signOut()
 				.then(async () => {
-					
+
 					await AsyncStorage.removeItem('uid');
 					props.navigation.navigate('LoginScreen')
 				})
@@ -103,16 +80,38 @@ const HomeScreen = (props) => {
 					<Text style={styles.buttonText}>Log-out</Text>
 				</TouchableOpacity>
 			</View>
+
 			<View style={styles.list}>
-				<FlatList
+				{listData.map((item, index) => {
+					return (
+						<TouchableOpacity style={styles.item} key={index} onPress={() => props.navigation.navigate('RecipeDetailsScreen', { recipeId: item.recipeId })}>
+							<ImageBackground
+								source={{ uri: item.image }}
+								style={styles.bgImage}
+							>
+								<View style={styles.titleContainer}>
+									<Text style={styles.title} numberOfLines={1}>
+										{item.recipeName}
+									</Text>
+								</View>
+
+							</ImageBackground>
+						</TouchableOpacity>
+					)
+				})}
+				{/* <FlatList
 					showsVerticalScrollIndicator={false}
 					data={listData}
 					keyExtractor={(item, index) => item.id}
 					renderItem={renderItem}
 					style={{ width: '100%' }}
 					ListEmptyComponent={emptyComponent}
-				/>
+				/> */}
 			</View>
+		{/* // 	<View style={{ marginTop: Dimensions.get('window').height * 0.4, alignItems: 'center' }}>
+		// 	<Text style={styles.emptyText}>No recipe found</Text>
+		// </View> */}
+
 		</View>
 	)
 };
@@ -141,27 +140,32 @@ const styles = StyleSheet.create({
 		fontSize: 12,
 	},
 	list: {
-		justifyContent: 'center',
-		alignItems: 'center',
+		flexDirection: 'row',
+		// justifyContent: 'space-around',
+		alignItems: 'flex-start',
 		padding: 15,
-		marginBottom: 80
+		marginBottom: 80,
+		flexWrap: 'wrap',
+
 	},
 	emptyText: {
 		color: "white",
 		fontSize: 15,
 	},
 	item: {
-		height: 200,
-		width: '100%',
+		height: 100,
+		width: 150,
 		backgroundColor: '#f5f5f5',
 		borderRadius: 10,
 		overflow: 'hidden',
-		marginVertical: 10
+		margin: 5,
+		borderColor: '#fff',
+		borderWidth: 1
 	},
 	bgImage: {
 		width: '100%',
 		height: '100%',
-		justifyContent: 'flex-end',
+		justifyContent: 'center',
 	},
 	titleContainer: {
 		backgroundColor: 'rgba(0,0,0,0.5)',
