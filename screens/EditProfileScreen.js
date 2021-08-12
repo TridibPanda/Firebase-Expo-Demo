@@ -13,8 +13,10 @@ import {
 	Platform
 } from 'react-native';
 import AsyncStorage from '@react-native-community/async-storage';
+import { useSelector, useDispatch } from 'react-redux';
 import Input from '../components/Input';
 import { db } from '../config/Firebase';
+import { update } from '../store/actions/Auth';
 
 const Height = Dimensions.get('window').height > 660;
 const Width = Dimensions.get('window').width > 360;
@@ -26,36 +28,43 @@ const EditProfileScreen = (props) => {
 	const [email, setEmail] = useState('');
 	const [phone, setPhone] = useState();
 	const [location, setLocation] = useState('');
+	const dispatch = useDispatch();
+	const details = useSelector(state => state.auth.data);
 
-
-	const submit = async() => {
-		const userId = await AsyncStorage.getItem('uid');
-		 db.collection("Users")
-			.doc(`${userId}`)
-			.update({
-				name: name,
-				email: email,
-				phone: phone,
-				location: location,
-			})
-			.then(() => props.navigation.goBack())
-			.catch((error) => console.log(error));
+	const submit =  () => {
+		dispatch(update(name, email, phone, location, props.navigation));
+		// const userId = await AsyncStorage.getItem('uid');
+		//  db.collection("Users")
+		// 	.doc(`${userId}`)
+		// 	.update({
+		// 		name: name,
+		// 		email: email,
+		// 		phone: phone,
+		// 		location: location,
+		// 	})
+		// 	.then(() => props.navigation.goBack())
+		// 	.catch((error) => console.log(error));
 	};
-	const result = async() => {
-		const userId = await AsyncStorage.getItem('uid');
-		db.collection('Users')
-			.doc(userId)
-			.get().then((doc)=> {
-				setName(doc.data().name);
-				setEmail(doc.data().email);
-				setPhone(doc.data().phone);
-				setLocation(doc.data().location)
-			}).catch((error) => {
-				console.log(error);
-			})
-	}
+	// const result = async () => {
+	// 	const userId = await AsyncStorage.getItem('uid');
+	// 	db.collection('Users')
+	// 		.doc(userId)
+	// 		.get().then((doc)=> {
+	// 			setName(doc.data().name);
+	// 			setEmail(doc.data().email);
+	// 			setPhone(doc.data().phone);
+	// 			setLocation(doc.data().location)
+	// 		}).catch((error) => {
+	// 			console.log(error);
+	// 		})
+	// }
 	useEffect(() => {
-		result();
+		
+		setName(details.name);
+		setEmail(details.email);
+		setPhone(details.phone);
+		setLocation(details.location)
+		// result();
 	}, [])
 
 	return (
@@ -95,7 +104,7 @@ const EditProfileScreen = (props) => {
 						/>
 					</View>
 					<View style={styles.passwordContainer}>
-						<Text  style={styles.passwordText} >{email ? email : "Email"}</Text>
+						<Text style={styles.passwordText} >{email ? email : "Email"}</Text>
 					</View>
 					<View style={styles.inputContainer}>
 						<Input

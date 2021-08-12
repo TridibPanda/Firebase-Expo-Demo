@@ -14,48 +14,59 @@ import {
 	ImageBackground
 } from 'react-native';
 import AsyncStorage from '@react-native-community/async-storage';
+import { useSelector, useDispatch } from 'react-redux';
 import Firebase, { db } from '../config/Firebase';
-
+import { recipes} from '../store/actions/Recipes';
+import { logout, get } from '../store/actions/Auth';
 const Height = Dimensions.get('window').height > 660;
 const Width = Dimensions.get('window').width > 360;
 
 
 const HomeScreen = (props) => {
-	const [listData, setListData] = useState([]);
+	// const [listData, setListData] = useState([]);
+
+	const listData = useSelector(state => state.recipes.recipes);
+	const dispatch = useDispatch();
 
 	const datafn = () => {
-		var data = [];
-		db.collection('RecipeList')
-			.get().then((querySnapshot) => {
-				if (!querySnapshot.empty) {
-					querySnapshot.forEach((doc) => {
-						data.push(doc.data());
-					});
-					setListData(data);
-				}
-			})
+		dispatch(recipes());
+		// var data = [];
+		// db.collection('RecipeList')
+		// 	.get().then((querySnapshot) => {
+		// 		if (!querySnapshot.empty) {
+		// 			querySnapshot.forEach((doc) => {
+		// 				data.push(doc.data());
+		// 			});
+		// 			setListData(data);
+		// 		}
+		// 	})
 
 	};
 	useEffect(() => {
 		datafn();
 		
-	}, [datafn])
+	}, [])
 
-	const logoutfn = async () => {
-		try {
-			await Firebase.auth()
-				.signOut()
-				.then(async () => {
+	const logoutfn = () => {
+		dispatch(logout(props.navigation));
+		// try {
+		// 	await Firebase.auth()
+		// 		.signOut()
+		// 		.then(async () => {
 
-					await AsyncStorage.removeItem('uid');
-					props.navigation.navigate('LoginScreen')
-				})
-				.catch((error) => {
-					console.log(error);
-				});
-		} catch (error) {
-			console.log(error);
-		}
+		// 			await AsyncStorage.removeItem('uid');
+		// 			props.navigation.navigate('LoginScreen')
+		// 		})
+		// 		.catch((error) => {
+		// 			console.log(error);
+		// 		});
+		// } catch (error) {
+		// 	console.log(error);
+		// }
+	}
+	const edit = () =>{
+		dispatch(get());
+		props.navigation.navigate('EditProfileScreen')
 	}
 
 	return (
@@ -68,7 +79,7 @@ const HomeScreen = (props) => {
 					<Text style={styles.buttonText}>Add Recipe</Text>
 				</TouchableOpacity>
 				<TouchableOpacity
-					onPress={() => props.navigation.navigate('EditProfileScreen')}
+					onPress={edit}
 					style={styles.button}
 				>
 					<Text style={styles.buttonText}>Edit Profile</Text>

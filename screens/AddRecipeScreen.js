@@ -21,9 +21,10 @@ import AsyncStorage from '@react-native-community/async-storage';
 import * as ImagePicker from 'expo-image-picker';
 import * as Permissions from 'expo-permissions';
 import * as FileSystem from "expo-file-system";
+import { useSelector, useDispatch } from 'react-redux';
 import Input from '../components/Input';
 import Firebase, { db } from '../config/Firebase';
-
+import { addRecipe} from '../store/actions/Recipes';
 
 const Height = Dimensions.get('window').height > 660;
 const Width = Dimensions.get('window').width > 360;
@@ -37,6 +38,7 @@ const AddRecipeScreen = (props) => {
     const [direction, setDirection] = useState({ field: '', check: false });
     const [imageId, setImageId] = useState(Math.random());
     const [visible, setVisible] = useState(false);
+    const dispatch = useDispatch();
 
     const verifyPermissions = async () => {
         const result = await Permissions.askAsync(
@@ -80,44 +82,48 @@ const AddRecipeScreen = (props) => {
 
     const submit = async () => {
        
-        var uid = await AsyncStorage.getItem('uid');
+        // var uid = await AsyncStorage.getItem('uid');
         if (pickedImage.field && recipeName.field && ingredients.field && direction.field) {
             setVisible(true);
-            const response = await fetch(pickedImage.field);
-            const blob = await response.blob();
-            var ref = Firebase.storage()
-                .ref()
-                .child(`RecipeImage/` + `${imageId}.jpeg`);
-            await ref.put(blob)
+            dispatch(addRecipe(recipeName.field,ingredients.field,direction.field,pickedImage.field, props.navigation));
+            setTimeout(() => {
+				setVisible(false);
+			}, 2000)
+            // const response = await fetch(pickedImage.field);
+            // const blob = await response.blob();
+            // var ref = Firebase.storage()
+            //     .ref()
+            //     .child(`RecipeImage/` + `${imageId}.jpeg`);
+            // await ref.put(blob)
 
 
-            var ref = Firebase.storage()
-                .ref()
-                .child(`RecipeImage/` + `${imageId}.jpeg`);
-            const image = await ref.getDownloadURL();
-            if (image) {
-                db.collection('RecipeList')
-                    .doc(`${imageId}recipe`)
-                    .set({
-                        recipeName: recipeName.field,
-                        ingredients: ingredients.field,
-                        direction: direction.field,
-                        uid: uid,
-                        image: image,
-                        recipeId: `${imageId}recipe`
-                    })
-                    .then((docRef) => {
-                        console.log(docRef, 'Document saved');
-                        setVisible(false);
-                        props.navigation.navigate('HomeScreen');
-                    })
-                    .catch((error) => {
-                        console.error('Error adding document: ', error);
-                    });
-            } else {
-                setVisible(false);
-                alert("Something wrong try again later")
-            }
+            // var ref = Firebase.storage()
+            //     .ref()
+            //     .child(`RecipeImage/` + `${imageId}.jpeg`);
+            // const image = await ref.getDownloadURL();
+            // if (image) {
+            //     db.collection('RecipeList')
+            //         .doc(`${imageId}recipe`)
+            //         .set({
+            //             recipeName: recipeName.field,
+            //             ingredients: ingredients.field,
+            //             direction: direction.field,
+            //             uid: uid,
+            //             image: image,
+            //             recipeId: `${imageId}recipe`
+            //         })
+            //         .then((docRef) => {
+            //             console.log(docRef, 'Document saved');
+            //             setVisible(false);
+            //             props.navigation.navigate('HomeScreen');
+            //         })
+            //         .catch((error) => {
+            //             console.error('Error adding document: ', error);
+            //         });
+            // } else {
+            //     setVisible(false);
+            //     alert("Something wrong try again later")
+            // }
         } else {
             recipeName.field ? null : setRecipeName({ field: '', check: true });
             ingredients.field ? null : setIngredients({ field: '', check: true })

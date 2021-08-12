@@ -13,8 +13,10 @@ import {
 	KeyboardAvoidingView,
 } from 'react-native';
 import AsyncStorage from '@react-native-community/async-storage';
+import { useDispatch } from 'react-redux';
 import Input from '../components/Input';
 import Firebase, { db } from '../config/Firebase';
+import { login } from '../store/actions/Auth';
 
 const Height = Dimensions.get('window').height > 660;
 const Width = Dimensions.get('window').width > 360;
@@ -25,21 +27,23 @@ const LoginScreen = (props) => {
 	const [secure, setSecure] = useState(true);
 	const [email, setEmail] = useState('');
 	const [password, setPassword] = useState('');
+	const dispatch = useDispatch();
 
 	const changeEntry = () => {
 		setSecure((prevState) => !prevState);
 	};
 
 	const handleLogin = () => {
-		Firebase.auth()
-			.signInWithEmailAndPassword(email, password)
-			.then((result) => {
+		dispatch(login(email,password,props.navigation));
+		// Firebase.auth()
+		// 	.signInWithEmailAndPassword(email, password)
+		// 	.then((result) => {
 
-				AsyncStorage.setItem('uid', result.user.uid);
-				props.navigation.navigate('HomeScreen');
+		// 		AsyncStorage.setItem('uid', result.user.uid);
+		// 		props.navigation.navigate('HomeScreen');
 
-			})
-			.catch((error) => alert(error));
+		// 	})
+		// 	.catch((error) => alert(error));
 
 	}
 

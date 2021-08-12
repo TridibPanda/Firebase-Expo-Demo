@@ -47,14 +47,6 @@ const styles = StyleSheet.create({
     backgroundColor: "transparent",
     fontSize: 17,
   },
-  // errorContainer: {
-  //   marginVertical: 5,
-  // },
-  // errorText: {
-  //   fontFamily: "open-sans",
-  //   color: "red",
-  //   fontSize: 13,
-  // },
 });
 
 export default Input;

@@ -17,8 +17,10 @@ import {
 import AsyncStorage from '@react-native-community/async-storage';
 import * as Permissions from 'expo-permissions';
 import * as Location from 'expo-location';
+import { useDispatch } from 'react-redux';
 import Input from '../components/Input';
 import Firebase, { db } from '../config/Firebase';
+import { signup } from '../store/actions/Auth';
 
 const Height = Dimensions.get('window').height > 660;
 const Width = Dimensions.get('window').width > 360;
@@ -33,7 +35,7 @@ const SignupScreen = (props) => {
 	const [location, setLocation] = useState({ field: '', check: false });
 	const [password, setPassword] = useState({ field: '', check: false });
 	const [visible, setVisible] = useState(false);
-
+	const dispatch = useDispatch();
 	const changeEntry = () => {
 		setSecure((prevState) => !prevState);
 	};
@@ -41,34 +43,41 @@ const SignupScreen = (props) => {
 	const Signupfn = () => {
 		if (name.field && email.field && password.field && phone.field && location.field) {
 			setVisible(true);
-			Firebase.auth()
-				.createUserWithEmailAndPassword(email.field, password.field)
-				.then((result) => {
-					console.log(result);
-					db.collection('Users')
-						.doc(`${result.user.uid}`)
-						.set({
-							name: name.field,
-							email: email.field,
-							phone: phone.field,
-							uid: result.user.uid,
-							location: location.field,
-						})
-						.then((docRef) => {
-							console.log(docRef, 'Document saved');
-							AsyncStorage.setItem('uid', result.user.uid);
-							props.navigation.navigate('HomeScreen');
-							setVisible(false);
-						})
-						.catch((error) => {
-							console.error('Error adding document: ', error);
-						});
-				})
-				.catch((error) => {
-					alert(error);
-					setVisible(false);
-					console.log(error);
-				});
+			dispatch(signup(name.field, email.field, password.field, phone.field, location.field, props.navigation));
+			setTimeout(() => {
+				setVisible(false);
+			}, 2000)
+
+
+
+			// Firebase.auth()
+			// 	.createUserWithEmailAndPassword(email.field, password.field)
+			// 	.then((result) => {
+			// 		console.log(result);
+			// 		db.collection('Users')
+			// 			.doc(`${result.user.uid}`)
+			// 			.set({
+			// 				name: name.field,
+			// 				email: email.field,
+			// 				phone: phone.field,
+			// 				uid: result.user.uid,
+			// 				location: location.field,
+			// 			})
+			// 			.then((docRef) => {
+			// 				console.log(docRef, 'Document saved');
+			// 				AsyncStorage.setItem('uid', result.user.uid);
+			// 				props.navigation.navigate('HomeScreen');
+			// 				setVisible(false);
+			// 			})
+			// 			.catch((error) => {
+			// 				console.error('Error adding document: ', error);
+			// 			});
+			// 	})
+			// 	.catch((error) => {
+			// 		alert(error);
+			// 		setVisible(false);
+			// 		console.log(error);
+			// 	});
 		} else {
 			name.field ? null : setName({ field: '', check: true });
 			email.field ? null : setEmail({ field: '', check: true })
@@ -83,31 +92,31 @@ const SignupScreen = (props) => {
 		) ? setEmail({ field: email, check: false }) : setEmail({ field: '', check: true })
 	};
 	const verifyPermissions = async () => {
-        const result = await Permissions.askAsync(
-            Permissions.LOCATION
-        );
-        if (result.status !== 'granted') {
-            Alert.alert(
-                'Insufficient permissions!',
-                'You need to grant Location permission to fetch your current location.',
-                [{ text: 'Okay' }]
-            );
-            return false;
-        }
-        return true;
-    };
-	const currentLocation = async()=>{
+		const result = await Permissions.askAsync(
+			Permissions.LOCATION
+		);
+		if (result.status !== 'granted') {
+			Alert.alert(
+				'Insufficient permissions!',
+				'You need to grant Location permission to fetch your current location.',
+				[{ text: 'Okay' }]
+			);
+			return false;
+		}
+		return true;
+	};
+	const currentLocation = async () => {
 		const hasPermission = await verifyPermissions();
-        if (!hasPermission) {
-            return;
-        }
-      let location = await Location.getCurrentPositionAsync({});
-      let address = await Location.reverseGeocodeAsync({
-        latitude : location.coords.latitude,
-        longitude : location.coords.longitude
-      })
-      console.log(address,"location");
-	  setLocation({ field: `${address[0].city},${address[0].subregion},${address[0].region}-${address[0].postalCode},${address[0].country}`, check: false })
+		if (!hasPermission) {
+			return;
+		}
+		let location = await Location.getCurrentPositionAsync({});
+		let address = await Location.reverseGeocodeAsync({
+			latitude: location.coords.latitude,
+			longitude: location.coords.longitude
+		})
+		console.log(address, "location");
+		setLocation({ field: `${address[0].city},${address[0].subregion},${address[0].region}-${address[0].postalCode},${address[0].country}`, check: false })
 	}
 
 	return (
@@ -170,7 +179,7 @@ const SignupScreen = (props) => {
 							autoCapitalize="none"
 							placeholderTextColor="white"
 							onChangeText={(location) => (location ? setLocation({ field: location, check: false }) : setLocation({ field: '', check: true }))}
-							value ={location.field}
+							value={location.field}
 						/>
 						<Ionicons
 							style={{ padding: 10 }}

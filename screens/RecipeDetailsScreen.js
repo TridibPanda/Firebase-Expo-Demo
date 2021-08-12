@@ -15,28 +15,37 @@ import {
     Platform
 } from 'react-native';
 import AsyncStorage from '@react-native-community/async-storage';
+import { useSelector, useDispatch } from 'react-redux';
 import { db } from '../config/Firebase';
+import { recipeDetails} from '../store/actions/Recipes';
 
 const Height = Dimensions.get('window').height > 660;
 const Width = Dimensions.get('window').width > 360;
 
 
 const RecipeDetailsScreen = (props) => {
-	const [recipe,setRecipe] = useState({});
-	
-const details =async()=>{
-	const { recipeId } = await props.route.params;
-	db.collection('RecipeList')
-	.doc(recipeId)
-	.get()
-	.then((doc)=> {
-		console.log(doc.data(),recipeId )
-		setRecipe(doc.data());
-	})
-	.catch((error)=>{
-		console.error('Error adding document: ', error);
-	});
-}
+	// const [recipe,setRecipe] = useState({});
+	const { recipeId } =  props.route.params;
+	const dispatch = useDispatch();
+
+	const recipe = useSelector(state => state.recipes.recipe);
+// const details =async()=>{
+// 	
+// 	db.collection('RecipeList')
+// 	.doc(recipeId)
+// 	.get()
+// 	.then((doc)=> {
+// 		console.log(doc.data(),recipeId )
+// 		setRecipe(doc.data());
+// 	})
+// 	.catch((error)=>{
+// 		console.error('Error adding document: ', error);
+// 	});
+// }
+const details = () => {
+    dispatch(recipeDetails(recipeId));
+  };
+
 	useEffect(()=>{
 		details();
 	},[]);
@@ -113,7 +122,6 @@ const styles = StyleSheet.create({
 		fontSize: 25,
 		color: 'white',
 		textAlign: 'center',
-        fontFamily:'bold'
 	  },
       Ingredients:{
         alignItems: 'center',
