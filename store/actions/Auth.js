@@ -6,8 +6,9 @@ export const LOGIN = 'LOGIN';
 export const LOGOUT = 'LOGOUT';
 export const UPDATE = 'UPDATE';
 export const GET = 'GET';
+export const LOCAL  = 'LOCAL';
 
-export const signup = (name, email, password, phone, location, navigation) => {
+export const signup = (name, email, password, phone, location) => {
     return dispatch => {
         Firebase.auth()
             .createUserWithEmailAndPassword(email, password)
@@ -25,7 +26,7 @@ export const signup = (name, email, password, phone, location, navigation) => {
                     .then((docRef) => {
                         console.log('Document saved');
                         AsyncStorage.setItem('uid', result.user.uid);
-                        navigation.navigate('HomeScreen');
+                        // navigation.navigate('HomeScreen');
                         dispatch({ type: SIGNUP, uid: result.user.uid })
                     })
                     .catch((error) => {
@@ -39,14 +40,14 @@ export const signup = (name, email, password, phone, location, navigation) => {
     }
 };
 
-export const login = (email, password, navigation) => {
+export const login = (email, password) => {
     return dispatch => {
         Firebase.auth()
             .signInWithEmailAndPassword(email, password)
             .then((result) => {
 
                 AsyncStorage.setItem('uid', result.user.uid);
-                navigation.navigate('HomeScreen');
+                // navigation.navigate('HomeScreen');
                 dispatch({ type: LOGIN, uid: result.user.uid })
 
             })
@@ -54,19 +55,25 @@ export const login = (email, password, navigation) => {
     }
 };
 
-export const logout = (navigation) => {
+export const logout = () => {
     return dispatch => {
         Firebase.auth()
             .signOut()
             .then(async () => {
 
                 await AsyncStorage.removeItem('uid');
-                navigation.navigate('LoginScreen');
+                // navigation.navigate('LoginScreen');
                 dispatch({ type: LOGOUT, uid: '' })
             })
             .catch((error) => {
                 console.log(error);
             });
+    }
+};
+export const local = () => {
+    return async dispatch => {
+        const userId = await AsyncStorage.getItem('uid');
+        dispatch({ type: LOCAL, uid: userId })
     }
 };
 

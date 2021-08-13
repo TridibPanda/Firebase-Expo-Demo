@@ -165,7 +165,7 @@ const AddRecipeScreen = (props) => {
                     </View>
 
                     <View style={styles.imagePreview}>
-                        <Image style={styles.image} source={{ uri: pickedImage.field }} />
+                        <Image style={styles.image} source={{ uri: pickedImage.field ? pickedImage.field: null }} />
                     </View>
                     <Text style={styles.errormessage}>Maximum image size is 1MB.</Text>
                     {pickedImage.check ? <Text style={styles.errortext}>Select one image </Text> : null}

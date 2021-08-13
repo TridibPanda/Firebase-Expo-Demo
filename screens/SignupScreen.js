@@ -43,7 +43,7 @@ const SignupScreen = (props) => {
 	const Signupfn = () => {
 		if (name.field && email.field && password.field && phone.field && location.field) {
 			setVisible(true);
-			dispatch(signup(name.field, email.field, password.field, phone.field, location.field, props.navigation));
+			dispatch(signup(name.field, email.field, password.field, phone.field, location.field));
 			setTimeout(() => {
 				setVisible(false);
 			}, 2000)

@@ -1,11 +1,14 @@
-import { SIGNUP, LOGIN, LOGOUT, UPDATE, GET } from '../actions/Auth';
+import { LOCAL, SIGNUP, LOGIN, LOGOUT, UPDATE, GET } from '../actions/Auth';
 const initialState = {
     uid: '',
     data: {},
+    isloggedIn: false
 };
 
 const AuthReducer = (state = initialState, action) => {
     switch (action.type) {
+        case LOCAL:
+            return { ...state, uid: action.uid, isloggedIn: true };
         case SIGNUP:
             return { ...state, uid: action.uid };
         case LOGIN:

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import {
 	View,
@@ -34,7 +34,7 @@ const LoginScreen = (props) => {
 	};
 
 	const handleLogin = () => {
-		dispatch(login(email,password,props.navigation));
+		dispatch(login(email,password));
 		// Firebase.auth()
 		// 	.signInWithEmailAndPassword(email, password)
 		// 	.then((result) => {

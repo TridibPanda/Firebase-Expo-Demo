@@ -30,6 +30,7 @@ const HomeScreen = (props) => {
 
 	const datafn = () => {
 		dispatch(recipes());
+		dispatch(get());
 		// var data = [];
 		// db.collection('RecipeList')
 		// 	.get().then((querySnapshot) => {
@@ -48,7 +49,7 @@ const HomeScreen = (props) => {
 	}, [])
 
 	const logoutfn = () => {
-		dispatch(logout(props.navigation));
+		dispatch(logout());
 		// try {
 		// 	await Firebase.auth()
 		// 		.signOut()
@@ -65,7 +66,7 @@ const HomeScreen = (props) => {
 		// }
 	}
 	const edit = () =>{
-		dispatch(get());
+		
 		props.navigation.navigate('EditProfileScreen')
 	}
 

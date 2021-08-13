@@ -4,20 +4,17 @@ import {
     StyleSheet,
     ActivityIndicator
 } from 'react-native';
-import AsyncStorage from '@react-native-community/async-storage';
+import { useDispatch } from 'react-redux';
+
+import { local } from '../store/actions/Auth';
 
 const InitialScreen = (props) => {
-    const result = async()=>{
-        const uid = await AsyncStorage.getItem('uid');
-        if(uid){
-            props.navigation.navigate('HomeScreen');	
-        }else{
-            props.navigation.navigate('LoginScreen');
-        }
-    };
-    useEffect(()=>{  
-        result();
-    },[result])
+
+  const dispatch = useDispatch();
+
+  useEffect(()=>{
+    dispatch(local());
+  },[]);
 
     return (
         <View style={styles.screen}>
